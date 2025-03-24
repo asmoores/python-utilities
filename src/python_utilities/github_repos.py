@@ -147,8 +147,8 @@ class GitHubRepoManager:
             ) from e
             
         self.session = requests.Session()
-        if token:
-            self.session.auth = HTTPBasicAuth(username, token)
+        if self.token:
+            self.session.auth = HTTPBasicAuth(username, self.token)
 
     def get_repos(self) -> List[Dict[str, Any]]:
         """
