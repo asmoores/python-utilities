@@ -67,12 +67,24 @@ python -m python_utilities.scripts.github_sync myusername
 1. Clone the repository
 2. Install dependencies using `uv`:
    ```bash
-   uv sync
+   # Install all dependencies including development tools
+   uv sync --extras dev
    ```
 
 ### Running Tests
 ```bash
 pytest
+```
+
+### Code Quality
+The project uses `ruff` for linting and code formatting. To run the linter:
+```bash
+ruff check .
+```
+
+To automatically fix issues that can be fixed:
+```bash
+ruff check --fix .
 ```
 
 ### Adding New Scripts

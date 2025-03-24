@@ -1,20 +1,53 @@
 [project]
 name = "python-utilities"
 version = "0.1.0"
-description = "A collection of Python utilities"
+description = "A collection of Python utilities for various tasks"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Andrew Moores", email = "andrew@moores.me" },
 ]
 dependencies = [
-    "requests>=2.31.0",
-    "keyring>=24.0.0",
-    "tqdm>=4.66.0",
+    "keyring",
+    "requests",
+    "tqdm",
 ]
 requires-python = ">=3.8"
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear
+    "C90", # mccabe
+    "RUF", # ruff-specific rules
+]
+ignore = []
+
+[tool.ruff.isort]
+known-first-party = ["python_utilities"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/python_utilities"] 
