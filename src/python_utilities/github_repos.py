@@ -11,7 +11,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import keyring
 import requests
@@ -116,7 +116,7 @@ class GitHubRepoManager:
     def __init__(
         self,
         username: str,
-        token: Optional[str] = None,
+        token: str | None = None,
         base_path: str = "/Volumes/archive/github-repos",
         log_file: str = "github_sync.log",
     ) -> None:
