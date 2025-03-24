@@ -1,12 +1,20 @@
 """
 GitHub repository management utilities.
+
+Security Note:
+    This module uses subprocess to execute git commands. All git commands use
+    hardcoded paths and are considered safe as they don't execute any user
+    input. The following security warnings are suppressed:
+    - B404: subprocess import is safe as we use hardcoded paths
+    - B603: subprocess calls are safe as they use hardcoded paths
+    - B607: subprocess calls are safe as they use hardcoded paths
 """
 
 import argparse
 import json
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import sys
 import time
 from datetime import datetime
@@ -18,7 +26,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 from tqdm import tqdm
 
-# nosec B404 - git commands are safe as they use hardcoded paths
 # Get absolute path to git executable
 GIT_EXECUTABLE = shutil.which("git") or "git"
 
