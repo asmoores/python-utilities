@@ -249,147 +249,97 @@ class GitHubRepoManager:
         Raises:
             RuntimeError: If any operation fails
         """
+        self.logger.log("detail", "Starting GitHub repository synchronization")
+        
+        # Get remote repositories
         try:
-            # Get all remote repositories
             remote_repos = self.get_repos()
-            remote_repo_names = {repo["name"]: repo for repo in remote_repos}
-            
-            # Track existing repositories in both folders
-            existing_repos: Dict[str, set] = {
-                "public": set(),
-                "private": set()
-            }
-            
-            # Scan existing repositories
-            for visibility in ["public", "private"]:
-                visibility_path = self.base_path / visibility
-                if visibility_path.exists():
-                    for repo_path in visibility_path.iterdir():
-                        if repo_path.is_dir():
-                            existing_repos[visibility].add(repo_path.name)
-            
-            # Calculate total number of operations
-            total_ops = (
-                len(remote_repos) +  # Clone/update operations
-                sum(1 for visibility in ["public", "private"]
-                    for repo_name in existing_repos[visibility]
-                    if repo_name not in remote_repo_names) +  # Delete operations
-                sum(1 for repo in remote_repos
-                    if repo["name"] in existing_repos["public"] and repo["private"] or
-                    repo["name"] in existing_repos["private"] and not repo["private"])  # Move operations
+            self.logger.log(
+                "detail",
+                f"Found {len(remote_repos)} repositories on GitHub",
+                total_repos=len(remote_repos)
             )
-            
-            # Create progress bar
-            pbar = tqdm(
-                total=total_ops,
-                desc="Syncing repositories",
-                unit="repo",
-                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]"
+        except RuntimeError as e:
+            self.logger.log(
+                "detail",
+                "Failed to fetch repositories from GitHub",
+                error=str(e)
             )
-            
-            # Handle repositories that no longer exist remotely
-            for visibility in ["public", "private"]:
-                for repo_name in existing_repos[visibility]:
-                    if repo_name not in remote_repo_names:
-                        repo_path = self.base_path / visibility / repo_name
+            raise
+
+        # Create sets for efficient lookup
+        remote_repo_names = {repo["name"] for repo in remote_repos}
+        remote_repo_visibility = {
+            repo["name"]: "private" if repo["private"] else "public"
+            for repo in remote_repos
+        }
+
+        # Process each repository
+        for repo in tqdm(remote_repos, desc="Processing repositories"):
+            try:
+                self.clone_or_update_repo(repo)
+            except RuntimeError as e:
+                self.logger.log(
+                    "detail",
+                    f"Failed to process repository {repo['name']}",
+                    error=str(e)
+                )
+                continue
+
+        # Check for repositories that need to be moved or deleted
+        for visibility in ["public", "private"]:
+            folder_path = self.base_path / visibility
+            if not folder_path.exists():
+                continue
+
+            for repo_path in folder_path.iterdir():
+                if not repo_path.is_dir():
+                    continue
+
+                repo_name = repo_path.name
+                if repo_name not in remote_repo_names:
+                    # Repository no longer exists on GitHub
+                    try:
                         self.logger.log(
                             "detail",
-                            f"Deleting repository {repo_name}",
+                            f"Deleting repository {repo_name} (no longer exists on GitHub)",
                             action="delete",
                             repo_name=repo_name,
                             visibility=visibility
                         )
-                        try:
-                            shutil.rmtree(repo_path)
-                            self.logger.increment_stat("deleted")
-                            pbar.update(1)
-                        except Exception as e:
-                            error_msg = f"Error deleting {repo_name}: {e}"
-                            self.logger.log(
-                                "detail",
-                                error_msg,
-                                action="error",
-                                repo_name=repo_name,
-                                visibility=visibility,
-                                error=str(e)
-                            )
-                            self.logger.increment_stat("errors")
-                            pbar.update(1)
-            
-            # Handle existing and new repositories
-            for repo in remote_repos:
-                repo_name = repo["name"]
-                current_visibility = "private" if repo["private"] else "public"
-                
-                # Check if repository exists in either folder
-                existing_visibility = None
-                for visibility in ["public", "private"]:
-                    if repo_name in existing_repos[visibility]:
-                        existing_visibility = visibility
-                        break
-                
-                # If repository exists but in wrong folder, move it
-                if existing_visibility and existing_visibility != current_visibility:
-                    old_path = self.base_path / existing_visibility / repo_name
-                    new_path = self.base_path / current_visibility / repo_name
-                    self.logger.log(
-                        "detail",
-                        f"Moving repository {repo_name}",
-                        action="move",
-                        repo_name=repo_name,
-                        from_visibility=existing_visibility,
-                        to_visibility=current_visibility
-                    )
-                    try:
-                        shutil.move(str(old_path), str(new_path))
-                        self.logger.increment_stat("moved")
-                        pbar.update(1)
-                    except Exception as e:
-                        error_msg = f"Error moving {repo_name}: {e}"
+                        shutil.rmtree(repo_path)
+                        self.logger.increment_stat("deleted")
+                    except OSError as e:
                         self.logger.log(
                             "detail",
-                            error_msg,
-                            action="error",
-                            repo_name=repo_name,
-                            from_visibility=existing_visibility,
-                            to_visibility=current_visibility,
+                            f"Failed to delete repository {repo_name}",
                             error=str(e)
                         )
                         self.logger.increment_stat("errors")
-                        pbar.update(1)
-                        continue
-                
-                # Clone or update the repository
-                try:
-                    self.clone_or_update_repo(repo)
-                    pbar.update(1)
-                except Exception as e:
-                    error_msg = f"Error processing {repo_name}: {e}"
-                    self.logger.log(
-                        "detail",
-                        error_msg,
-                        action="error",
-                        repo_name=repo_name,
-                        visibility=current_visibility,
-                        error=str(e)
-                    )
-                    self.logger.increment_stat("errors")
-                    pbar.update(1)
-                    
-        except Exception as e:
-            error_msg = f"Failed to sync repositories: {e}"
-            self.logger.log(
-                "detail",
-                error_msg,
-                action="error",
-                error=str(e)
-            )
-            self.logger.increment_stat("errors")
-            raise
-        finally:
-            if 'pbar' in locals():
-                pbar.close()
-            self.logger.log_summary()
+                elif remote_repo_visibility[repo_name] != visibility:
+                    # Repository visibility has changed
+                    try:
+                        new_path = self.base_path / remote_repo_visibility[repo_name] / repo_name
+                        self.logger.log(
+                            "detail",
+                            f"Moving repository {repo_name} from {visibility} to {remote_repo_visibility[repo_name]}",
+                            action="move",
+                            repo_name=repo_name,
+                            from_visibility=visibility,
+                            to_visibility=remote_repo_visibility[repo_name]
+                        )
+                        shutil.move(str(repo_path), str(new_path))
+                        self.logger.increment_stat("moved")
+                    except OSError as e:
+                        self.logger.log(
+                            "detail",
+                            f"Failed to move repository {repo_name}",
+                            error=str(e)
+                        )
+                        self.logger.increment_stat("errors")
+
+        # Log summary
+        self.logger.log_summary()
 
 
 def main() -> None:
