@@ -87,6 +87,30 @@ To automatically fix issues that can be fixed:
 ruff check --fix .
 ```
 
+### Pre-commit Hooks
+This project uses pre-commit hooks to ensure code quality and security. The hooks include:
+- Security scanning with `bandit`
+- Code formatting with `ruff`
+- Various file checks (trailing whitespace, merge conflicts, etc.)
+- Private key detection
+
+To set up pre-commit hooks:
+```bash
+# Install pre-commit
+uv pip install pre-commit
+
+# Install the git hooks
+pre-commit install
+
+# Run against all files (optional)
+pre-commit run --all-files
+```
+
+The hooks will run automatically on each commit, but you can also run them manually:
+```bash
+pre-commit run --all-files
+```
+
 ### Adding New Scripts
 1. Create a new Python file in `src/python_utilities/scripts/`
 2. Add command-line argument parsing using `argparse`
