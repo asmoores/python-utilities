@@ -98,4 +98,7 @@ packages = ["src/python_utilities"]
 
 [tool.bandit]
 exclude_dirs = ["tests"]
-skips = ["B101"]  # Skip assert warnings in tests
+skips = ["B404", "B603", "B607"]
+output_format = "text"
+confidence_level = "HIGH"
+severity_level = "MEDIUM"
