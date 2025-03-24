@@ -43,4 +43,7 @@ htmlcov/
 coverage.xml
 *.cover
 *.py,cover
-.hypothesis/ 
+.hypothesis/
+
+# Log files
+*.log 
