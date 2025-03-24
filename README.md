@@ -50,7 +50,7 @@ python -m python_utilities.scripts.github_sync <username> \
 - `--token`: GitHub personal access token (optional, defaults to environment variable GITHUB_TOKEN)
 - `--store-token`: Store the provided token in system keyring
 - `--base-path`: Base directory for storing repositories (default: /Volumes/archive/github-repos)
-- `--log-file`: Path to log file (default: github_sync.log)
+- `--log-file`: Path to log file (default: github_sync.log in current directory)
 
 #### Example
 ```bash

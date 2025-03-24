@@ -28,7 +28,7 @@ class Logger:
     timestamp, event type, message, and any additional fields provided.
     
     Attributes:
-        log_file (str): Path to the log file where entries will be written
+        log_file (Path): Path to the log file where entries will be written
         start_time (float): Timestamp when the logger was initialized
         stats (Dict[str, int]): Dictionary tracking counts of various operations
     """
@@ -40,7 +40,9 @@ class Logger:
         Args:
             log_file: Path to the log file where entries will be written
         """
-        self.log_file = log_file
+        self.log_file = Path(log_file)
+        # Create parent directories if they don't exist
+        self.log_file.parent.mkdir(parents=True, exist_ok=True)
         self.start_time = time.time()
         self.stats: Dict[str, int] = {
             "cloned": 0,
@@ -366,7 +368,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--log-file",
-        help="Path to log file",
+        help="Path to log file (default: github_sync.log in current directory)",
         default="github_sync.log",
     )
 
