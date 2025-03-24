@@ -1,6 +1,6 @@
 # Python Utilities
 
-A collection of Python utilities for various tasks.
+A collection of Python utilities for various tasks, developed with assistance from AI agents in Cursor IDE. These scripts are designed to automate common development and system administration tasks, with a focus on code quality, maintainability, and user experience.
 
 ## Project Structure
 
