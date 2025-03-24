@@ -54,8 +54,8 @@ python -m python_utilities.scripts.github_sync <username> \
 
 #### Example
 ```bash
-# First time setup with token storage
-python -m python_utilities.scripts.github_sync myusername --token mytoken --store-token
+# First time setup with token storage (replace YOUR_GITHUB_TOKEN with your actual token)
+python -m python_utilities.scripts.github_sync myusername --token YOUR_GITHUB_TOKEN --store-token
 
 # Subsequent runs (token will be retrieved from keyring)
 python -m python_utilities.scripts.github_sync myusername

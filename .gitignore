@@ -46,4 +46,8 @@ coverage.xml
 .hypothesis/
 
 # Log files
+*.log
+github_sync.log
+
+# Logs
 *.log 
