@@ -1,0 +1,7 @@
+# Bandit configuration file
+[bandit]
+exclude_dirs = ['tests']
+skips = ['B404', 'B603', 'B607']
+output_format = text
+confidence_level = HIGH
+severity_level = MEDIUM 
