@@ -29,4 +29,4 @@ jobs:
 
       - name: Run bandit
         run: |
-          bandit -c .bandit -r src/python_utilities/
+          bandit -c pyproject.toml -r src/python_utilities/
